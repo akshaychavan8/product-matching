@@ -21,7 +21,7 @@ This project provides a versatile tool for generating descriptions of images and
 
 2. Install the required dependencies:
    ```
-   pip install transformers Pillow sentence-transformers torch
+   pip install -r requirements.txt
    ```
 
 ## Usage

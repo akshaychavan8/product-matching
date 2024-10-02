@@ -48,7 +48,7 @@ def describe_image_enhanced(image_path):
 
 def main():
     image_path = "../images/keyboard1.jpg"
-    description = describe_image_enhanced(image_path)
+    description = describe_image_simple(image_path)
     print(f"Image description: {description}")
 
 

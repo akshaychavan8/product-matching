@@ -355,9 +355,8 @@ class ProductComparator:
 
         return result
 
+
 # Usage example
-
-
 def test_compare():
     comparator = ProductComparator()
     product1 = {
