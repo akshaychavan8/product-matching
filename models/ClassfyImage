@@ -1,0 +1,58 @@
+import torch
+from transformers import CLIPProcessor, CLIPModel
+from PIL import Image
+from tkinter import filedialog
+from tkinter import Tk
+
+# Load the model and processor
+device = "cuda" if torch.cuda.is_available() else "cpu"
+model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32").to(device)
+processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
+
+# Function to upload and preprocess the image
+def upload_image():
+    # Hide the root window
+    root = Tk()
+    root.withdraw()
+
+    # Open the file dialog
+    image_path = filedialog.askopenfilename()
+    
+    if image_path:
+        image = Image.open(image_path)
+        return image, image_path
+    else:
+        return None, None
+
+# Function to extract keywords
+def extract_keywords(image, labels):
+    # Preprocess the image and the labels
+    inputs = processor(text=labels, images=image, return_tensors="pt", padding=True).to(device)
+
+    # Get the image and text features
+    with torch.no_grad():
+        image_features = model.get_image_features(**{k: v for k, v in inputs.items() if 'pixel_values' in k})
+        text_features = model.get_text_features(**{k: v for k, v in inputs.items() if 'input_ids' in k})
+
+    # Calculate cosine similarities
+    similarities = torch.cosine_similarity(image_features, text_features)
+    sorted_indices = similarities.argsort(descending=True)
+
+    # Get the top 5 most relevant labels
+    top_labels = [(labels[i], ((similarities[i].item() + 1) / 2) * 100) for i in sorted_indices[:5]]
+    return top_labels
+
+# Predefined labels (you can modify these according to your use case)
+labels = ["Tech", "Furniture", "Food", "Fashion", "Music", "Games", "Book", "Movies", "Healthcare", "Pet", "Arts"]
+
+# Upload an image
+image, image_path = upload_image()
+
+if image is not None:
+    # Extract keywords from the image
+    keywords = extract_keywords(image, labels)
+    print(f"Keywords extracted from the image {image_path}:")
+    for label, score in keywords:
+        print(f"{label} (similarity score: {score:.4f}%)")
+else:
+    print("No image was uploaded.")
